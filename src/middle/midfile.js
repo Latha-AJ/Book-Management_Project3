@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const BookModel = require("../models/BookModel");
 const mongoose = require('mongoose')
 
-const tokenRegex = /^[A-Za-z0-9-=]+\.[A-Za-z0-9-=]+\.?[A-Za-z0-9-_.+/=]*$/;
+// const tokenRegex = /^[A-Za-z0-9-=]+\.[A-Za-z0-9-=]+\.?[A-Za-z0-9-_.+/=]*$/;
 
 const isValidObjectId = function (ObjectId) {
   return mongoose.Types.ObjectId.isValid(ObjectId);
@@ -15,15 +15,14 @@ const authentication = async function (req, res, next) {
     let secretKey = "Group33-book/Management";
 
     if (!token) { return res.status(400).send({ status: false, msg: "Token must be presents" }) }
-    if (!tokenRegex.test(token)) return res.send(400).send({ status: false, message: "Please provide a valid  token" })
-    
-    try{
-    let decodedToken = jwt.verify(token, secretKey);
-    req.decodedToken = decodedToken
-    }catch(err){
-   return res.status(400).send({status:false, message:err.message})
-    }
-    next();
+    //if (!tokenRegex.test(token)) return res.send(400).send({ status: false, message: "Please provide a valid  token" })
+       
+   jwt.verify(token,secretKey, function(err, decodedToken){
+      if(err){ return res.status(401).send({status:false, message:"Invalid Token"}) }
+      else { 
+        req.token = decodedToken
+         next();}
+    })
 
   } catch (err) {
     res.status(500).send({ msg: "Error", error: err.message })

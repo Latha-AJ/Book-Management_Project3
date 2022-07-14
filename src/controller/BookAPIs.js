@@ -29,10 +29,11 @@ const ISBNRegex = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/;
 
 const createBook = async function (req, res) {
   try {
-    let bookData = req.body;
-  let validUser = req.decodedToken.userId
+    
+  let bookData = req.body;
+  let validUser = req.token.userId
    
-    let { title, excerpt, userId, ISBN, category, subcategory, isDeleted } = bookData;
+    let { title, excerpt, userId, ISBN, category, subcategory, isDeleted, releasedAt } = bookData;
       
     if (!isValidRequestBody(bookData))return res.status(400).send({ status: false, message: "No input by user.." });
     
@@ -56,11 +57,16 @@ const createBook = async function (req, res) {
 
     if (!ISBNRegex.test(ISBN))return res.status(400).send({status: false, message: " Please provide valid ISBN of 13 digits."});
 
+    if(!releasedAt) return res.status(400).send({status:false, message:"releasedAt is required"})
+    
+    if(!dateRegex.test(releasedAt)) return res.status(400).send({status:false, message:"Enter the date in the yyyy-mm-dd format"})
+    
     const findUser = await UserModel.findOne({ _id: userId });
 
     if (!findUser) return res.status(404).send({ status: false, message: "No such user found with this Id" });
 
     const duplicateTitle = await BookModel.findOne({ title });
+
     if (duplicateTitle) return res.status(400).send({ status: false, message: "Title already exists" });
 
     const duplicateISBN = await BookModel.findOne({ ISBN });
